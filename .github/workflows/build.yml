@@ -37,9 +37,36 @@ jobs:
         # 复制 dll, json (runtime config), 和 runtimes (native libs)
         cp -r compiled_dlls/* src/osu_lib/lib/
         
+        cd src/osu_lib/lib/runtimes
+        
+        rm -rf android*
+        rm -rf ios*
+        rm -rf tvos*
+        
+        rm -rf browser*
+        rm -rf tizen*
+        rm -rf maccatalyst*
+        
+        rm -rf *-x86      # win-x86, linux-x86
+        rm -rf *-arm      # linux-arm (32位), android-arm
+        rm -rf *-armel
+        
+        rm -rf *-mips64
+        rm -rf *-s390x
+        rm -rf *-ppc64le
+        
+        # 删除 Musl Linux (除非你要支持 Alpine Linux，否则标准 Linux 都是用 glibc)
+        rm -rf linux-musl*
+        
+        # 删除 Windows ARM (目前 Windows 上主要还是 x64)
+        rm -rf win-arm*
+        
+        cd ..
         # 清理掉不需要的 exe 或者 pdb (调试符号)，减小体积
-        rm -f src/osu_lib/lib/*.exe
-        rm -f src/osu_lib/lib/*.pdb
+        # 删除调试符号 (.pdb) 和 可执行文件 (.exe)
+        rm -f *.pdb *.exe
+        
+        rm osu.Game.Resources.dll
         
         echo "=== Files to be packed ==="
         ls -R src/osu_lib/lib
