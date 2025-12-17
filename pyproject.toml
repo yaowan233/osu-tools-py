@@ -2,7 +2,7 @@
 name = "osu-calculator-py"
 version = "0.1.0"
 description = "A Python wrapper for osu! tools using pythonnet"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "pythonnet>=3.0.5",
 ]
