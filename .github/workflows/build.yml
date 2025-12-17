@@ -1,0 +1,56 @@
+name: Build and Package
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 拉取代码
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # 2. 安装 uv (极速 Python 管理工具)
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+
+    # 3. 设置 .NET 8 (用于编译 C#)
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # 4. 编译 C# DLL
+    - name: Publish osu-tools
+      run: |
+        # 假设你需要编译 osu-tools 下的 PerformanceCalculator 项目
+        # 请根据实际 csproj 路径修改
+        cd osu-tools/PerformanceCalculator 
+        dotnet publish -c Release -o ../../compiled_dlls
+
+    # 5. 【关键】将编译产物移动到 src/osu_lib/lib
+    - name: Inject DLLs into Source
+      run: |
+        mkdir -p src/osu_lib/lib
+        # 复制 dll, json (runtime config), 和 runtimes (native libs)
+        cp -r compiled_dlls/* src/osu_lib/lib/
+        
+        # 清理掉不需要的 exe 或者 pdb (调试符号)，减小体积
+        rm -f src/osu_lib/lib/*.exe
+        rm -f src/osu_lib/lib/*.pdb
+        
+        echo "=== Files to be packed ==="
+        ls -R src/osu_lib/lib
+
+    # 6. 使用 uv 构建 Wheel
+    - name: Build with uv
+      run: uv build
+
+    # 7. 上传构建产物 (dist 文件夹)
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheels
+        path: dist/*

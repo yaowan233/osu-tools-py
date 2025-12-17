@@ -1,0 +1,19 @@
+[project]
+name = "osu-calculator-py"
+version = "0.1.0"
+description = "A Python wrapper for osu! tools using pythonnet"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "pythonnet>=3.0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/osu_lib"]
+
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/osu_lib/lib" = "osu_lib/lib"

@@ -1,0 +1,29 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 构建产物 (uv / pip 生成的)
+build/
+dist/
+*.egg-info/
+
+# C# 编译产生的临时文件夹 (我们在 CI 里编译，本地的不要传)
+bin/
+obj/
+published_temp/
+compiled_dlls/
+
+# IDE 配置
+.vscode/
+.idea/
+
+
+src/osu_lib/lib/*.dll
+src/osu_lib/lib/*.json
+!src/osu_lib/lib/.gitkeep
