@@ -1,4 +1,4 @@
-from main import OsuCalculator
+from src.osu_lib.calculator import OsuCalculator
 
 # 1. 实例化 (只需指定一次 DLL 路径)
 # 如果你的 published_output 文件夹就在当前目录的 osu-tools 下，甚至不需要传参数
@@ -18,6 +18,6 @@ result = calc.calculate(
 if "error" in result:
     print("出错啦:", result["error"])
 else:
-    print(f"歌名: {result['title']}")
+    print(f"歌名: {result['stats_used']}")
     print(f"Stars: {result['stars']:.2f}")
     print(f"PP: {result['pp']:.2f}")
