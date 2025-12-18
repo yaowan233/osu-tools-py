@@ -312,7 +312,11 @@ class OsuCalculator:
                 self.HitResult.Great: self._extract_stat(stats_obj, 'great'),
                 self.HitResult.Ok: self._extract_stat(stats_obj, 'ok'),
                 self.HitResult.Meh: self._extract_stat(stats_obj, 'meh'),
-                self.HitResult.Miss: self._extract_stat(stats_obj, 'miss')
+                self.HitResult.Miss: self._extract_stat(stats_obj, 'miss'),
+                self.HitResult.SliderTailHit: self._extract_stat(stats_obj, 'slider_tail_hit'),
+                self.HitResult.LargeTickHit: self._extract_stat(stats_obj, 'large_tick_hit'),
+                self.HitResult.SmallTickHit: self._extract_stat(stats_obj, 'small_tick_hit'),
+                self.HitResult.SmallTickMiss: self._extract_stat(stats_obj, 'small_tick_miss')
             }
 
         # 2. 否则执行模拟逻辑 (Fallback)
@@ -371,7 +375,7 @@ class OsuCalculator:
             self.HitResult.Miss: max(0, misses)
         }
 
-    def _sim_mania(self, acc, beatmap, misses, score_val, stats_obj=None):
+    def _sim_mania(self, acc, beatmap, misses, stats_obj=None):
         """Mania"""
         if self._has_valid_stats(stats_obj):
             return {
@@ -470,7 +474,7 @@ class OsuCalculator:
         }
 
     def calculate(self, file_path, mode=0, mods=None, acc=100.0, combo=None, misses=0,
-                  score_val=None, statistics=None):
+                  legacy_total_score=None, statistics=None):
         """
         :param statistics: Statistics 对象或字典。如果有值，将忽略 acc/misses 进行计算。
         """
@@ -517,12 +521,13 @@ class OsuCalculator:
             elif mode == 2:
                 stats = self._sim_catch(acc, beatmap, effective_misses, statistics)
             elif mode == 3:
-                stats = self._sim_mania(acc, beatmap, effective_misses, score_val, statistics)
+                stats = self._sim_mania(acc, beatmap, effective_misses, statistics)
             # 4. Construct Score
             score = self.ScoreInfo()
             score.Ruleset = ruleset.RulesetInfo
             score.BeatmapInfo = working_beatmap.BeatmapInfo
             score.Mods = csharp_mods.ToArray()
+            score.LegacyTotalScore = int(legacy_total_score) if legacy_total_score is not None and int(legacy_total_score) > 0 else 0
 
             # 如果传了 Combo 用传的，否则用满 Combo
             score.MaxCombo = int(combo) if combo is not None else diff_attr.MaxCombo
