@@ -224,20 +224,60 @@ class OsuCalculator:
         }
 
     def _parse_mods(self, mod_list, ruleset):
-        """将 Python 字符串列表转换为 C# Mod 列表"""
+        """
+        将 Python 输入 (字符串列表 / 字典列表 / 对象列表) 转换为 C# Mod 列表。
+        兼容以下格式：
+        1. ["HD", "DT"]
+        2. [{"acronym": "HD"}, {"acronym": "DT"}]  (常见 API 格式)
+        3. [{"Acronym": "HD"}]                     (C# JSON 风格)
+        4. [ModObj(acronym="HD")]                  (Pydantic/对象)
+        """
         available_mods = ruleset.CreateAllMods()
-        csharp_mods = self.List[self.Mod]()  # 泛型列表初始化
+        # 创建 C# List<Mod>
+        csharp_mods = self.List[self.Mod]()
 
         if not mod_list:
             return csharp_mods
 
         for m in mod_list:
-            # 忽略大小写查找
-            found = next((x for x in available_mods if str(x.Acronym).upper() == str(m).upper()), None)
+            target_acronym = None
+
+            # === 1. 如果是字符串 (例如 "HD") ===
+            if isinstance(m, str):
+                target_acronym = m
+
+            # === 2. 如果是字典 (例如 {"acronym": "DT"}) ===
+            elif isinstance(m, dict):
+                # 优先找 'acronym' (小写)，找不到再找 'Acronym' (大写)
+                target_acronym = m.get("acronym") or m.get("Acronym")
+
+                # 如果字典里连 acronym 都没有，可能是无效数据，跳过
+                if target_acronym is None:
+                    continue
+
+            # === 3. 如果是对象 (例如 Pydantic model) ===
+            else:
+                # 尝试获取 .acronym 或 .Acronym 属性
+                target_acronym = getattr(m, "acronym", None) or getattr(m, "Acronym", None)
+
+            # 如果提取不出缩写字符串，跳过该项
+            if not target_acronym:
+                continue
+
+            # === 4. 在 C# 提供的可用 Mod 中查找 ===
+            # str(x.Acronym) 是 C# 里的缩写，转成 Python 字符串进行比对
+            found = next(
+                (x for x in available_mods if str(x.Acronym).upper() == str(target_acronym).upper()),
+                None
+            )
+
             if found:
                 csharp_mods.Add(found)
             else:
-                print(f"Warning: Mod '{m}' not found.")
+                # 可选：打印警告，告知未找到该 Mod (例如 SV2 等特殊 Mod)
+                # print(f"Warning: Mod '{target_acronym}' is not available in this ruleset.")
+                pass
+
         return csharp_mods
 
     def _extract_stat(self, stats_obj, attr_name, default=0):
@@ -255,7 +295,7 @@ class OsuCalculator:
         if not stats_obj:
             return False
         # 检查关键字段是否有大于0的值
-        keys = ['great', 'ok', 'meh', 'good', 'perfect', 'miss', 'large_tick_hit']
+        keys = ['great', 'ok', 'meh', 'good', 'perfect', 'miss', 'large_tick_hit', 'small_tick_hit', 'small_tck_miss']
         for k in keys:
             if self._extract_stat(stats_obj, k) > 0:
                 return True
@@ -468,7 +508,7 @@ class OsuCalculator:
             # 如果 statistics 有效，misses 应该从 statistics 里取，以保持一致性
             effective_misses = misses
             if self._has_valid_stats(statistics):
-                effective_misses = self._extract_stat(statistics, 'miss')
+                effective_misses = self._extract_stat(statistics, 'Miss')
 
             if mode == 0:
                 stats = self._sim_osu(acc, beatmap, effective_misses, statistics)
@@ -478,7 +518,6 @@ class OsuCalculator:
                 stats = self._sim_catch(acc, beatmap, effective_misses, statistics)
             elif mode == 3:
                 stats = self._sim_mania(acc, beatmap, effective_misses, score_val, statistics)
-
             # 4. Construct Score
             score = self.ScoreInfo()
             score.Ruleset = ruleset.RulesetInfo

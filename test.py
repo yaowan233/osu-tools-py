@@ -7,12 +7,12 @@ calc = OsuCalculator()
 # 2. 调用计算
 # 示例：Standard, HDDT, 98% Acc
 result = calc.calculate(
-    file_path="test.osu",
+    file_path="test4.osu",
     mode=0,
-    mods=["HD", "DT"],
-    acc=98.5,
-    combo=1200,
-    misses=1
+    mods=["CL"],
+    acc=94.13,
+    combo=295,
+    statistics={'great': 299, 'miss': 1, 'ok': 26, 'meh': 1}
 )
 
 if "error" in result:
