@@ -52,7 +52,7 @@ jobs:
         # 删除不必要的文件
         rm -f src/osu_lib/lib/*.pdb
         rm -f src/osu_lib/lib/*.exe
-        rm osu.Game.Resources.dll
+        rm -f src/osu_lib/lib/osu.Game.Resources.dll
         
         echo "=== ${{ matrix.rid }} Final Size ==="
         du -sh src/osu_lib/lib
