@@ -447,17 +447,17 @@ class OsuCalculator:
             statistics: Optional[Union[Dict[str, int], Any]] = None
     ) -> CalculationResult:
         """
-        计算 PP 和 Star Rating。
+        Calculates Performance Points (PP) and Star Rating (SR).
 
-        :param file_path: .osu 谱面文件路径
-        :param mode: 0=Osu, 1=Taiko, 2=Catch, 3=Mania
-        :param mods: Mod 列表，支持 ["HD"] 或 [{"acronym": "HD"}]
-        :param acc: 准确率 (0-100)，如果 statistics 有值则此参数在 Standard 模式下可能被忽略
-        :param combo: 最大连击数
-        :param misses: Miss 数量 (如果 statistics 有值则优先使用 statistics 里的 miss)
-        :param legacy_total_score: 传统总分。>0 时会触发 osu!stable 兼容模式 (Legacy Mode)
-        :param statistics: 详细统计数据 (dict 或 object)，如 {'great': 300, 'ok': 10}
-        :return: CalculationResult 对象
+        :param file_path: Path to the .osu beatmap file.
+        :param mode: Game mode (0=Osu, 1=Taiko, 2=Catch, 3=Mania).
+        :param mods: List of mods. Supports strings (e.g. ["HD"]) or dicts (e.g. [{"acronym": "HD"}]).
+        :param acc: Accuracy (0-100). Ignored in Standard mode if 'statistics' is provided.
+        :param combo: Max combo achieved. If None, defaults to FC (Full Combo).
+        :param misses: Miss count. Ignored if 'statistics' contains miss count.
+        :param legacy_total_score: Legacy Total Score. Set to > 0 to enable osu!stable compatibility mode (Legacy Mode).
+        :param statistics: Detailed hit statistics (dict or object), e.g. {'great': 300, 'ok': 10}.
+        :return: CalculationResult object.
         """
         if mods is None: mods = []
         abs_path = os.path.abspath(file_path)
