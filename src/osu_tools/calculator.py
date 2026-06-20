@@ -261,6 +261,20 @@ class OsuCalculator:
 
         return csharp_mods
 
+    def _get_mod_acronym(self, mod: Union[str, Dict[str, Any], Any]) -> Optional[str]:
+        if isinstance(mod, str):
+            return mod
+        if isinstance(mod, dict):
+            return mod.get("acronym") or mod.get("Acronym")
+        return getattr(mod, "acronym", None) or getattr(mod, "Acronym", None)
+
+    def _filter_mods_for_converted_mania(
+            self,
+            mods: List[Union[str, Dict[str, Any], Any]]
+    ) -> List[Union[str, Dict[str, Any], Any]]:
+        key_mods = {"1K", "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K", "10K"}
+        return [mod for mod in mods if (self._get_mod_acronym(mod) or "").upper() not in key_mods]
+
     def _extract_stat(self, stats_obj: Union[Dict, Any, None], attr_name: str, default: int = 0) -> int:
         """安全提取统计属性"""
         if stats_obj is None:
@@ -478,12 +492,15 @@ class OsuCalculator:
             decoder = self.LegacyBeatmapDecoder()
             beatmap = decoder.Decode(reader)
 
+            original_ruleset_id = beatmap.BeatmapInfo.Ruleset.OnlineID
             converter = ruleset.CreateBeatmapConverter(beatmap)
             if converter.CanConvert():
                 beatmap = converter.Convert()
             working_beatmap = self.FlatWorkingBeatmap(beatmap)
 
             # 2. Mod 解析与难度计算
+            if mode == 3 and original_ruleset_id != 3:
+                mods = self._filter_mods_for_converted_mania(mods)
             csharp_mods = self._parse_mods(mods, ruleset)
             diff_calc = ruleset.CreateDifficultyCalculator(working_beatmap)
             diff_attr = diff_calc.Calculate(csharp_mods)
